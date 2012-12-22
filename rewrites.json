@@ -1,0 +1,24 @@
+[
+	{
+		"to": "_list/discussions/discussions-racine", 
+		"from": "",
+                "query":{
+                    "descending":"true"
+                }
+	},
+	{
+		"to": "../../", 
+		"from": "", "method": "POST"
+	},
+	{
+		"to": "_list/commentaires/commentaires", 
+		"from": "discussion/:id", 
+		"method": "GET", 
+		"query": {
+			"startkey": [":id"], 
+			"endkey": [":id",2],
+                        "descending":"false"
+		} 
+	}
+	
+]
