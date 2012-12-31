@@ -6,8 +6,8 @@
   	<script src="/_utils/script/json2.js"></script>
   	<script src="/_utils/script/jquery.js"></script>
   	<script src="/_utils/script/jquery.couch.js"></script>
-  	<script src="../../js/script.js"></script>
-        
+        <script src="/_utils/script/jquery.form.js"></script>
+        <script src="../../js/script.js"></script>
 	<script type="text/javascript">
             
             //Enregistrer un nouvel utilisateur
@@ -34,12 +34,12 @@
                 db = $.couch.db("argile-forum");
                 db.openDoc(id, {
                         success: function(doc) {
-                            doc.vote_count++;
+                            doc.vote_positif++;
                             db.saveDoc(doc, {
                                 success: function() {
                                 //alert("doc saved");
-                                var count = $("#count_"+id);
-                                count.text(doc.vote_count);
+                                var count = $("#positif_"+id);
+                                count.text(doc.vote_positif);
                                 }});
                         }
                     }
@@ -52,12 +52,12 @@
                 db = $.couch.db("argile-forum");
                 db.openDoc(id, {
                     success: function(doc) {
-                        doc.vote_count--;
+                        doc.vote_negatif++;
                         db.saveDoc(doc, {
                             success: function() {
                             //alert("doc saved");
-                            var count = $("#count_"+id);
-                            count.text(doc.vote_count);
+                            var count = $("#negatif_"+id);
+                            count.text(doc.vote_negatif);
                             }});
                     }
                 });
@@ -78,18 +78,18 @@
                     var parents_titre = [];
                     
                     //Récupérer les id des parents, rajouter l'objet actuel
-                    var str = '{{linked_to}}';
+                    var str = '{{parents_id}}';
                     parents_id = str.split(",");
                     parents_id.push("{{topic_id}}");
                     
                     //Récupérer les titres des parents, rajouter l'objet actuel
-                    str = '{{relinked_to}}';
+                    str = '{{parents_titre}}';
                     parents_titre = str.split(",");
                     parents_titre.push("{{topic}}");
+                                        
+                    var idConversation = nouvelleConversation(auteur,titre,"Nouvelle page de discussion concernant "+titre,val_type_objet,parents_id,parents_titre);                
                     
-                    comment = comment+" Je crée une nouvelle discussion concernant l'objet '"+titre+"'.";
-                    
-                    nouvelleConversation(auteur,titre,"Nouvelle page de discussion concernant "+titre,val_type_objet,parents_id,parents_titre);                
+                    comment = comment + " Je crée une nouvelle discussion concernant l'objet '" + titre + "'.";
                 }
   
                 nouveauCommentaire(auteur,"{{topic_id}}","{{topic}}",comment);
@@ -128,7 +128,7 @@
                 var answered = '{{answered}}';
                 //alert(answered);
                 if((answered!="no")&&(answered!="")){
-                    var tableau = document.getElementById("summary");
+                    var tableau = document.getElementById("resume");
                     var ligne = document.createElement("table");
                     ligne.className = "valid-answer";
                     
@@ -155,9 +155,9 @@
                 
                 //Récupérer la liste des id/titres des parents de l'objet'
                 //Sauvegardé comme item1,item2,item3. Fonction split pour transformer en tableau
-                var str = '{{linked_to}}';
+                var str = '{{parents_id}}';
                 parents_id = str.split(",");
-                str = '{{relinked_to}}';
+                str = '{{parents_titre}}';
                 parents_titre = str.split(",");
 
                 var menu = document.getElementById("arborescence-ul");
@@ -195,46 +195,64 @@
                 menu.appendChild(parent);
             });
             
-            //Afficher les objets liés à celui affiché
-            $("#related").ready(function(){
+            /*
+             * Afficher les objets liés à celui affiché
+             */
                 
-                var str = '{{linked_to}}'; //Récupérer les parents
-                str = str+',{{topic_id}}'; //Y rajouter la discussion en soi
-                var liee_titre = [];
-                var liee_id = [];
-                
-                //Récupérer l'ensemble des discussions
-                db = $.couch.db("argile-forum");
-                db.view("argile-forum/discussions", {
-                    success: function(data) {
-                        //Pour chaque discussion, comparer son arborescence (linked_to)
-                        for(i in data.rows){
-                            if(data.rows[i].value.linked_to == str){
-                                //Récupérer les titres et id des discussions liées
-                                liee_titre.push(data.rows[i].value.title);
-                                liee_id.push(data.rows[i].value._id);
-                            }
-                        }
-                        //alert(retour);
-                        
-                        var listeRelation = document.getElementById("objet-fils");
-                        for(i in liee_titre){
-                            var fils = document.createElement("div");
-                            if (liee_titre[i]!=undefined) {
-                                fils.innerHTML = "<a href='"+liee_id[i]+"'>"+liee_titre[i]+"</a>";
-                            }
-                            listeRelation.appendChild(fils);
+            var str = '{{parents_id}}'; //Récupérer les parents
+            str = str+',{{topic_id}}'; //Y rajouter la discussion en soi
+            var liee_titre = [];
+            var liee_id = [];
+
+            //Récupérer l'ensemble des discussions
+            db = $.couch.db("argile-forum");
+            db.view("argile-forum/discussions", {
+                success: function(data) {
+                    //Pour chaque discussion, comparer son arborescence (parents_id)
+                    for(i in data.rows){
+                        if(data.rows[i].value.parents_id == str){
+                            //Récupérer les titres et id des discussions liées
+                            liee_titre.push(data.rows[i].value.title);
+                            liee_id.push(data.rows[i].value._id);
                         }
                     }
-                });
-                //alert(retour);
+
+                    var listeRelation = document.getElementById("objet-fils");
+                    for(i in liee_titre){
+                        var fils = document.createElement("div");
+                        if (liee_titre[i]!=undefined) {
+                            fils.innerHTML = "<a href='"+liee_id[i]+"'>"+liee_titre[i]+"</a>";
+                        }
+                        listeRelation.appendChild(fils);
+                    }
+                }
+            });
+            
+            /*
+             * N'afficher le formulaire d'ajout de commentaire que si on est connecté
+             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
+             */
+            $("#ident").ready(function(){
+                var utilisateur = verifierConnexion();
+                if(utilisateur){
+                    $("#ident").html('<a href="../../_rewrite/utilisateur/' + utilisateur + '">' + utilisateur + ' - <a href="#" onclick="deconnecter()">Deconnexion</a>');
+                    var formulaire = $("#form-commentaire");
+                    formulaire.css('display','block'); 
+                }
+            });
+            
+            
+            $("#image-discussion").ready(function(){
+                var image = "{{image}}";
+                if(image){
+                    $(".image-discussion").html('<img style="max-width: 700px;" src="http://127.0.0.1:5984/argile-forum/{{topic_id}}/{{image}}"/>');
+                }
             });
   	</script>
     </head>
     <body>
          <div id="header">
             <div id="titre">Argile-forum</div>
-            <!--<h1>Argile-forum</h1>-->
             <div id="ident">
                 <a href="#" onclick="afficherFormConnexion()">Connexion</a> - <a href="#" onclick="afficherFormEnregistrement()">S'enregistrer</a>
             </div>
@@ -275,18 +293,18 @@
         -->
         <div id="content">
             <div id="topic">
-                <div id="summary">
+                <div id="resume">
                     <table id="table-summary">              
                         <tr>
-                            <td></td>
+                            <td align="center" class="image-discussion"></td>
+                        </tr>
+                        <tr>
                             <td class="message-cell">{{topic_text}}</td>
                         </tr>
                         <tr>
-                            <td></td>
                             <td align="right" class="post-author">Type : {{type_objet}}</td>
                         </tr>
                         <tr>
-                            <td></td>
                             <td align="right" class="post-author">{{auteur}}, {{date_modification}}</td>
                         </tr>
                     </table>                
@@ -295,17 +313,11 @@
                 Affichage des commentaires
                 -->
                 <div id="answers">
-                        {{#commentaires}}
-                        <table class="answer">
+                    {{#commentaires}}
+                    <table class="answer">
                         <tr>
-                            <td class="vote-cell"><span id="plus" onclick="vote_up('{{id}}')">+</span> <span id="count_{{id}}">{{count}}</span> <span id="minus" onclick="vote_down('{{id}}')">-</span></td>
-                            <td class="message-cell">
-                                <table>
-                                    <tr>
-                                        <td>{{text}}</td>
-                                    </tr>
-                                </table>
-                            </td>
+                            <td class="vote-cell"><span id="plus" onclick="vote_up('{{id}}')">+</span> <span class="vote-plus" id="positif_{{id}}">{{vote_positif}}</span> / <span class="vote-moins" id="negatif_{{id}}">{{vote_negatif}}</span> <span id="minus" onclick="vote_down('{{id}}')">-</span></td>
+                            <td class="message-cell">{{text}}</td>
                         </tr>
                         <tr>
                             <td id="valid" class="valid" onclick="valider('{{topic_id}}','{{id}}')">
@@ -313,39 +325,46 @@
                             </td>
                             <td align="right" class="post-author">{{auteur}}, {{date_modification}}</td>                            
                         </tr>
-                        </table>
-                        {{/commentaires}}                    
+                    </table>
+                    {{/commentaires}}                    
                     
                     <!--
                     Formulaire de réponse
                     -->
-                    <div id="form-anwsers">
-                        <form name="form" id="form">
-                            <h3 class="header-answer">Votre message</h3>
-                            <table>
-                                <tr>
-                                    <td><textarea rows="5" cols="80" name="textarea-answer" id="textarea-answer"></textarea></td>
-                                </tr>
-                            </table>
-                            <table>
-                                <tr>
-                                    <td>Créer un nouvel objet et sa discussion : <input type="text" name="titre" id="titre-post"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Type : 
-                                        <select id="select-type">
-                                            <option value="scene">Scène</option>
-                                            <option value="action">Action</option>
-                                            <option value="objet">Objet</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </table>
-                            <div class="send-button" onclick="ajouterCommentaire()">
-                                Envoyer
-                            </div>
-                        </form>
+                    <div id="form-commentaire" style="display: none">
+                        <h3 class="header-answer">Votre message</h3>
+                        <table>
+                            <tr>
+                                <td><textarea rows="5" cols="80" name="textarea-answer" id="textarea-answer"></textarea></td>
+                            </tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>Créer un nouvel objet et sa discussion : <input type="text" name="titre" id="titre-post"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Type : 
+                                    <select id="select-type">
+                                        <option value="scene">Scène</option>
+                                        <option value="action">Action</option>
+                                        <option value="objet">Objet</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Image (1Mo max) :
+                                    <form class="imageForm" method="post" action="" enctype="multipart/form-data">
+                                        <input type="text" name="_rev" id="_rev" placeholder="rev)" style="display:none;" />
+                                        <input type="file" name="_attachments" id="_attachments" multiple="multiple" />
+                                    </form>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="send-button" onclick="ajouterCommentaire()">
+                            Envoyer
+                        </div>
                     </div>
                 </div>
             </div>
@@ -363,5 +382,7 @@
         <div id="footer">
             
         </div>
+        
+        
     </body>
 </html>

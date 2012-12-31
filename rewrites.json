@@ -19,6 +19,14 @@
 			"endkey": [":id",2],
                         "descending":"false"
 		} 
+	},
+        {
+		"to": "_list/utilisateur/utilisateurs", 
+		"from": "utilisateur/:nom", 
+		"method": "GET", 
+		"query": {
+			"key": ":nom"
+		} 
 	}
 	
 ]

@@ -4,9 +4,9 @@
         <script src="/_utils/script/sha1.js"></script>
   	<script src="/_utils/script/json2.js"></script>
   	<script src="/_utils/script/jquery.js"></script>
-  	<script src="/_utils/script/jquery.couch.js"></script> 
- 	<script src="js/script.js"></script>
-        
+  	<script src="/_utils/script/jquery.couch.js"></script>
+        <script src="/_utils/script/jquery.form.js"></script>
+        <script src="js/script.js"></script>
 	<script type="text/javascript">
             
             //Enregistrer un nouvel utilisateur
@@ -64,8 +64,46 @@
                 }
             }
         
+            /*
+             * N'afficher le formulaire de création de sujet que si on est connecté
+             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
+             */
+            $("#ident").ready(function(){
+                var utilisateur = verifierConnexion();
+                if(utilisateur){                
+                    $("#ident").html('<a href="_rewrite/utilisateur/' + utilisateur + '">' + utilisateur + '</a> - <a href="#" onclick="deconnecter()">Deconnexion</a>');
+                    var formulaire = $("#nouveau-sujet");
+                    formulaire.css('display','block'); 
+                }
+            });  
             
-  	</script>
+            /*
+             * Afficher la liste des discussions dernièrement créées
+             */
+            $("#discussionsRecentes").ready(function(){
+                db = $.couch.db("argile-forum");
+                db.view("argile-forum/discussions-nouvelles", {
+                    success: function(data) {
+                        var nouveau_titre = [];
+                        var nouveau_id = [];
+                        for(i in data.rows){
+                                //Récupérer les titres et id des discussions liées
+                                nouveau_titre.unshift(data.rows[i].value.title);
+                                nouveau_id.unshift(data.rows[i].value._id);
+                        }
+
+                        var listeNouveau = document.getElementById("objet-nouveau");
+                        for(i in nouveau_titre){
+                            var nouveau = document.createElement("div");
+                            if (nouveau_titre[i]!=undefined) {
+                                nouveau.innerHTML = "<a href='_rewrite/discussion/"+nouveau_id[i]+"'>"+nouveau_titre[i]+"</a>";
+                            }
+                            listeNouveau.appendChild(nouveau);
+                        }
+                    }
+                });
+            }); 
+  	</script> 
     </head>
   <body>
         <div id="header">
@@ -103,7 +141,8 @@
         Liste des discussions
         -->
         <div id="content">
-            <div class="topic" id="topic">       
+            <div class="topic" id="topic">
+                
                 <table id="topic-summary">
                     <tr class="topic-row-header">
                         <td class="topic-summary-row-title">
@@ -112,7 +151,6 @@
                         <td class="topic-summary-row">
                             Date de modifitcation
                         </td>
-
                     </tr>               
                 {{#discussions}}
                     <tr>
@@ -123,49 +161,64 @@
                             {{date_modification}}
                         </td>
                     </tr>
-                           
                 {{/discussions}}
                 </table>
+                                
                 <!--
                 Formulaire de création de discussion
                 -->
-                <div id="summary">
-                        <form name="form" id="form">
-                            <table>
-                                    <tr>
-                                        <td>Nouveau fil de discussion</td>
-                                        <td><input type="text" name="title" id="title" value=""/></td>
+                <div id="nouveau-sujet" class="nouveau-sujet" style="display: none">
+                    <!--<form name="form" id="form" method="post" action="" enctype="multipart/form-data">-->
+                        <table>
+                                <tr>
+                                    <td>Nouveau fil de discussion</td>
+                                    <td><input type="text" name="title" id="title" value=""/></td>
 
-                                    </tr>
-                                    <tr>
-                                        <td>Type : </td>
-                                        <td><select id="select-type">
-                                                <option value="scene">Scène</option>
-                                                <option value="action">Action</option>
-                                                <option value="objet">Objet</option>
-                                            </select></td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Type : </td>
+                                    <td><select id="select-type">
+                                            <option value="scene">Scène</option>
+                                            <option value="action">Action</option>
+                                            <option value="objet">Objet</option>
+                                        </select></td>
 
-                                    </tr>
-                                    <tr>
-                                        <td>Résumé</td>
-                                        <!--<td><input type="text" name="text" id="text" value=""/></td>-->
-                                        <td><textarea rows="5" cols="80" id="textarea-sum"></textarea></td>
-                                    </tr>
-                            </table>
-                            <div class="send-button" onclick="creerDiscussion()">
-                                Envoyer
-                            </div>
-                        </form>
+                                </tr>
+                                <tr>
+                                    <td>Résumé :</td>
+                                    <!--<td><input type="text" name="text" id="text" value=""/></td>-->
+                                    <td><textarea rows="5" cols="80" id="textarea-sum"></textarea></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Image (1Mo max) :
+                                    </td>
+                                    <td>
+                                        <form class="imageForm" method="post" action="" enctype="multipart/form-data">
+                                            <input type="text" name="_rev" id="_rev" placeholder="rev)" style="display:none;" />
+                                            <input type="file" name="_attachments" id="_attachments" multiple="multiple" />
+                                        </form>
+                                    </td>
+                                </tr>
+                        </table>
+                        <div class="send-button" onclick="creerDiscussion()">
+                            Envoyer
+                        </div>
+                    <!--</form>-->
                 </div>
             </div>
-            <div id="related">
+            <div id="discussionsRecentes">
                 <h4 class="header-related">
                     Derniers objets créés
                 </h4>
+                <div id="objet-nouveau"></div>
             </div>  
         </div>
-      <div id="footer">
+        <div id="footer">
             
         </div>
+        
+        
     </body>
 </html>

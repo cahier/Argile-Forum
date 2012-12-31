@@ -63,7 +63,7 @@ body
 {
     /*background: #777;*/
 }
-#objet-fils
+#objet-fils, #objet-nouveau
 {
     padding: 5px;
 }
@@ -73,6 +73,8 @@ body
     width: 960px;
     min-height: 250px;
 }
+
+
 #topic
 {
     float: left;
@@ -117,6 +119,15 @@ body
     border: 1px solid gray;
     margin-bottom: 5px;
 }
+
+#resume, .nouveau-sujet
+{
+    clear: both;
+    width: 728px;
+    border: 1px solid gray;
+    margin-bottom: 5px;
+}
+
 #table-summary
 {
     width: 100%;
@@ -131,6 +142,8 @@ body
 }
 .answer{
     margin: 5px;
+    width: 99%;
+   
 }
 .valid-answer
 {
@@ -155,7 +168,7 @@ body
     color: white;
     text-align: center;
 }
-#form-anwsers
+#form-commentaire
 {
     padding: 5px;
 }
@@ -170,7 +183,8 @@ body
     text-align: center;
     width: 100px;
 }
-#related{
+#discussionsRecentes, #related
+{
     overflow: hidden;
     float: right;
     margin-bottom: 60px;
@@ -180,14 +194,23 @@ body
 .header-related
 {
     margin: 5px;
+    background-color: #DDD;
 }
 .vote-cell
 {
-    width: 60px;
+    width: 80px;
     font-weight: bold;
-    font-size: 140%;
+    /*font-size: 140%;*/
     vertical-align: top;
     padding: 5px;
+}
+.vote-plus
+{
+    color:green;
+}
+.vote-moins
+{
+    color:red;
 }
 .post-author
 {

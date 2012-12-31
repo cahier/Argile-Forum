@@ -1,0 +1,181 @@
+<html>
+    <head>
+	<link rel="stylesheet" href="../../style/forum.css" type="text/css">
+        <script src="/_utils/script/sha1.js"></script>
+  	<script src="/_utils/script/json2.js"></script>
+  	<script src="/_utils/script/jquery.js"></script>
+  	<script src="/_utils/script/jquery.couch.js"></script> 
+        <script src="/_utils/script/jquery.form.js"></script>
+    </head>
+  <body>
+        <div id="header">
+            <div id="titre">Argile-forum</a></div>
+            <div id="ident">
+                <a href="#" onclick="afficherFormConnexion()">Connexion</a> - <a href="#" onclick="afficherFormEnregistrement()">S'enregistrer</a>
+            </div>
+        </div>
+        <div id="login" style="display: none">
+            <h2>Connexion</h2>
+            <form id="form-login">
+                <input type="text" name="login" id="connexionNom" autofocus required placeholder="Nom d'utilisateur?">
+                <input type="password" name="mdp" id="connexionMdp" required placeholder="Mot de passe?"><br><br>
+                <div class="send-button" onclick="connexion()">
+                    Connexion
+                </div>
+            </form>
+        </div>
+        <div id="register" style="display: none">
+            <h2>S'enregistrer</h2>
+            <form id="form-register">
+                <input type="text" name="login" id="enregistrementNom" required placeholder="Nom d'utilisateur?">
+                <input type="password" name="mdp" id="enregistrementMdp" required placeholder="Mot de passe?">
+                <input type="email" name="email" id="enregistrementEmail" required placeholder="Email?"><br><br>
+                <div class="send-button" onclick="enregistrement()">
+                    S'enregistrer
+                </div>
+            </form>
+        </div>
+        
+        <div id="arborescence">
+            <div class="menus">
+                <ul id="arborescence-ul">
+                    <li class="menu-parent"><a href='../../_rewrite'>Accueil</a></li>
+                    <li class="menu-parent">></li>
+                    <li class="menu-ici"><a href="#">Profil utilisateur</a></li>
+                </ul>
+            </div>
+        </div>
+      
+            <div class="topic" id="topic">
+                
+                <table id="topic-summary">
+                    <tr class="topic-row-header">
+                        <td class="topic-summary-row-title">
+                            
+                        </td>
+                        <td class="topic-summary-row">
+                            
+                        </td>
+                    </tr>               
+                    <tr>
+                        <td class="topic-summary-row">
+                            Nom utilisateur :
+                        </td>
+                        <td class="topic-date-row">
+                            {{nomUtilisateur}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="topic-summary-row">
+                            Email :
+                        </td>
+                        <td class="topic-date-row">
+                            {{email}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="topic-summary-row">
+                            Type d'utilisateur :
+                        </td>
+                        <td class="topic-date-row">
+                            {{type}}
+                        </td>
+                    </tr>
+                </table>
+                                
+            </div>
+      
+        <div id="question" style="clear:both;">
+          <h2>Parrainer un nouvel utilisateur</h2>
+        </div>
+      
+        
+        Pour parrainer un nouvel utilisateur, il suffit de transmettre à ce dernier le lien suivant : 
+        <div id="parrainage">{{id}}</div>
+      
+        <div id="question" style="clear:both;">
+          <h2>Upload image</h2>
+        </div>
+      
+        <form class="documentForm" method="post" action="" enctype="multipart/form-data">
+            <input type="text" name="_id" id="test" placeholder="test" />
+            <input type="text" name="_rev" id="_rev" placeholder="rev)" />
+            <input type="file" name="_attachments" id="_attachments" multiple="multiple" />
+            <input type="submit" class="Submit" value="Submit" />
+            
+          </form>
+        <a href="#" onclick="test()">Envoyer</a>
+        <div id="footer">
+            
+        </div>
+        
+        <script src="../../js/script.js"></script>
+	<script type="text/javascript">
+            
+            $(function() {
+                $('form.documentForm').submit(function(e) {
+          
+                    e.preventDefault();
+
+                    // Get the user supplied details
+                    var input_db = $('.documentForm input#_db').val()
+                    var input_test = $('.documentForm input#test').val()
+                    var input_rev = $('.documentForm input#_rev').val()
+
+                    $.couch.db("argile-forum").saveDoc({"_id":input_test}, {
+                        success: function(couchDoc) {
+                          // Now that the Couch Doc exists, we can submit the attachment,
+                          // but before submitting we have to define the revision of the Couch
+                          // Doc so that it gets passed along in the form submit.
+                          $('.documentForm input#_rev').val(couchDoc.rev);
+                          $('form.documentForm').ajaxSubmit({
+                            // Submit the form with the attachment
+                            url: "/argile-forum/"+ couchDoc.id,
+                            success: function(response) {
+                              alert("Your attachment was submitted.")
+                            }
+                          })
+                        }
+                      })
+
+                }) /* End form.documentForm submit */
+            }) /* End jQuery ready */
+            
+            function test(){
+            var input_db = $('.documentForm input#_db').val();
+                    var input_test = $('.documentForm input#test').val();
+                    var input_rev = $('.documentForm input#_rev').val();
+
+                    $.couch.db("argile-forum").saveDoc({"_id":input_test}, {
+                        success: function(couchDoc) {
+                          // Now that the Couch Doc exists, we can submit the attachment,
+                          // but before submitting we have to define the revision of the Couch
+                          // Doc so that it gets passed along in the form submit.
+                          $('.documentForm input#_rev').val(couchDoc.rev);
+                          $('form.documentForm').ajaxSubmit({
+                            // Submit the form with the attachment
+                            url: "/argile-forum/"+ couchDoc.id,
+                            success: function(response) {
+                              alert("Your attachment was submitted.")
+                            }
+                          });
+                        }
+                      });
+            }
+            
+            /*var pathname = 'http://' + window.location.host + '/argile-forum/_design/argile-forum/_rewrite/inscription/{{id}}';
+            var lienParrain = $("#parrainage");
+            lienParrain.html(pathname);
+            */
+            
+            /*
+             * N'afficher le formulaire d'ajout de commentaire que si on est connecté
+             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
+             */
+            var utilisateur = verifierConnexion();
+            if(utilisateur){
+                $("#ident").html(utilisateur + ' - <a href="#" onclick="deconnecter()">Deconnexion</a>');
+            }
+  	</script> 
+    </body>
+</html>

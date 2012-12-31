@@ -21,10 +21,13 @@ function(head, req) {
         data.topic_text = row.value.text;
         data.answered = row.value.answered;
         data.date_modification = row.value.created;
-        data.linked_to = row.value.linked_to;
-        data.relinked_to = row.value.relinked_to;        
+        data.parents_id = row.value.parents_id;
+        data.parents_titre = row.value.parents_titre;        
         data.type_objet = row.value.type_objet;
         data.auteur = row.value.auteur;
+        for(var nomFichier in row.value._attachments){
+            data.image = nomFichier;
+        }
         i++;
     }
     else{
@@ -33,7 +36,8 @@ function(head, req) {
             order: ++i,
             id: row.id,
             text: row.value.text,
-            count: row.value.vote_count,
+            vote_negatif: row.value.vote_negatif,
+            vote_positif: row.value.vote_positif,
             date_modification: row.value.created,
             auteur: row.value.auteur
     	});
