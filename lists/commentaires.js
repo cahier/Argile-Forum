@@ -8,6 +8,9 @@ function(head, req) {
     topic: "Test",
     topic_id: "Test",
     answered: "",
+    texte: [],
+    parents_id: [],
+    parents_titre: [],
     commentaires: []
   };
   var i = 0;
@@ -21,10 +24,13 @@ function(head, req) {
         data.topic_text = row.value.text;
         data.answered = row.value.answered;
         data.date_modification = row.value.created;
-        data.parents_id = row.value.parents_id;
-        data.parents_titre = row.value.parents_titre;        
         data.type_objet = row.value.type_objet;
         data.auteur = row.value.auteur;
+        data.mots_cle = row.value.mots_cle;
+        for(var j in row.value.parents){
+            data.parents_id.push(row.value.parents[j].id);
+            data.parents_titre.push(row.value.parents[j].titre);
+        }
         for(var nomFichier in row.value._attachments){
             data.image = nomFichier;
         }

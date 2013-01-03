@@ -89,6 +89,14 @@ body
     margin-bottom: 5px;
     border-collapse: collapse;
 }
+#topic-tag-summary
+{
+    clear: both;
+    width: 980px;
+    border: 1px solid gray;
+    margin-bottom: 5px;
+    border-collapse: collapse;
+}
 .topic-row-header{
     background-color: #EEE;
 }
@@ -220,4 +228,17 @@ body
 .message-cell
 {
     padding: 5px;
+}
+
+.mot_cle
+{
+    background-color: #DDD;
+    color: black;
+    border-bottom: 1px solid #AAA;
+    border-right: 1px solid #AAA;
+    text-decoration: none;
+    padding: 3px 4px 3px 4px;
+    margin: 2px 2px 2px 0;
+    line-height: 2.4;
+    white-space: nowrap;
 }

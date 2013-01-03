@@ -1,6 +1,6 @@
 <html>
     <head>
-        
+        <title>Discussion : {{topic}}</title>
         <link rel="stylesheet" href="../../style/forum.css" type="text/css">
 	<script src="/_utils/script/sha1.js"></script>
   	<script src="/_utils/script/json2.js"></script>
@@ -9,7 +9,6 @@
         <script src="/_utils/script/jquery.form.js"></script>
         <script src="../../js/script.js"></script>
 	<script type="text/javascript">
-            
             //Enregistrer un nouvel utilisateur
             function enregistrement(){
                 var login = $('#enregistrementNom').val();
@@ -19,7 +18,9 @@
                 enregistrer(login,mdp,email);
             }
             
-            //Se connecter
+            /* 
+             * Se connecter
+             */
             function connexion(){
                 
                 var login = $('#connexionNom').val();
@@ -28,7 +29,10 @@
                 connecter(login,mdp);
             }
             
-            //Incrémenter la valeur du commentaire
+            /*
+             * Incrémenter la valeur du commentaire
+             * @param {string}   id  ID du commentaire à noter. 
+             */
             function vote_up(id){
 
                 db = $.couch.db("argile-forum");
@@ -46,7 +50,10 @@
                 );
             } 
             
-            //Décrémenter la valeur du commentaire
+            /*
+            * Décrémenter la valeur du commentaire
+            * @param {string}   id  ID du commentaire à noter. 
+            */
             function vote_down(id){
 
                 db = $.couch.db("argile-forum");
@@ -76,18 +83,34 @@
                 if(titre!=""){
                     var parents_id = [];
                     var parents_titre = [];
+                    var parents_t = [];
                     
-                    //Récupérer les id des parents, rajouter l'objet actuel
+                    //Récupérer les id des parents
                     var str = '{{parents_id}}';
-                    parents_id = str.split(",");
-                    parents_id.push("{{topic_id}}");
+                    var str2 = '{{parents_titre}}';
                     
-                    //Récupérer les titres des parents, rajouter l'objet actuel
-                    str = '{{parents_titre}}';
-                    parents_titre = str.split(",");
-                    parents_titre.push("{{topic}}");
+                    if(str!=""){
+                        //Récupérer les titres des parents
+                        parents_titre = str2.split(",");
+                        parents_id = str.split(",");
+                        
+                        for(var k in parents_id){
+                            parents_t.push({
+                                id: parents_id[k],
+                                titre: parents_titre[k]
+                            });
+                        }
+                    }
+                    
+                    parents_t.push({
+                        id: '{{topic_id}}',
+                        titre: '{{topic}}'
+                    });
                                         
-                    var idConversation = nouvelleConversation(auteur,titre,"Nouvelle page de discussion concernant "+titre,val_type_objet,parents_id,parents_titre);                
+                    var mots_cle = $("input#mots_cle").val();
+                    mots_cle = mots_cle.split(",");
+                                        
+                    var idConversation = nouvelleConversation(auteur,titre,"Nouvelle page de discussion concernant "+titre, val_type_objet, mots_cle, parents_t);                
                     
                     comment = comment + " Je crée une nouvelle discussion concernant l'objet '" + titre + "'.";
                 }
@@ -156,32 +179,40 @@
                 //Récupérer la liste des id/titres des parents de l'objet'
                 //Sauvegardé comme item1,item2,item3. Fonction split pour transformer en tableau
                 var str = '{{parents_id}}';
-                parents_id = str.split(",");
+                var parents_id = str.split(",");
                 str = '{{parents_titre}}';
-                parents_titre = str.split(",");
+                var parents_titre = str.split(",");
 
                 var menu = document.getElementById("arborescence-ul");
-               
-                for(var i in parents_titre){
-                    var parent = document.createElement("li");
-                    parent.className = "menu-parent";
-                    
-                    if(parents_titre[i]=='Racine'){
-                        //Premier élément de l'arborescence : Accueil'
-                        parent.innerHTML = "<a href='../../_rewrite'>Accueil</a>";
+                
+                var parent = document.createElement("li");
+                parent.className = "menu-parent";
+                parent.innerHTML = "<a href='../../_rewrite'>Accueil</a>";
+                menu.appendChild(parent);
+                
+                if(parents_titre!=""){
+                    for(var i in parents_titre){
+                        var parent = document.createElement("li");
+                        parent.className = "menu-parent";
+
+                        /*if(parents_titre[i]=='Racine'){
+                            //Premier élément de l'arborescence : Accueil'
+                            parent.innerHTML = "<a href='../../_rewrite'>Accueil</a>";
+                        }
+                        else{*/
+                            //Sinon, le lien vers l'objet'
+                            parent.innerHTML = "<a href='"+parents_id[i]+"'>"+parents_titre[i]+"</a>";
+
+                            //Simple séparateur >
+                            var parent_lien = document.createElement("li");
+                            parent_lien.className = "menu-parent";
+                            parent_lien.innerHTML = ">";     
+                            menu.appendChild(parent_lien);
+                        //}
+                        menu.appendChild(parent);
                     }
-                    else{
-                        //Sinon, le lien vers l'objet'
-                        parent.innerHTML = "<a href='"+parents_id[i]+"'>"+parents_titre[i]+"</a>";
-                        
-                        //Simple séparateur >
-                        var parent_lien = document.createElement("li");
-                        parent_lien.className = "menu-parent";
-                        parent_lien.innerHTML = ">";     
-                        menu.appendChild(parent_lien);
-                    }
-                    menu.appendChild(parent);
                 }
+                
                 
                 //Ajouter/Afficher le lien/nom de la discussion en cours
                 var parent_lien = document.createElement("li");
@@ -198,9 +229,13 @@
             /*
              * Afficher les objets liés à celui affiché
              */
-                
             var str = '{{parents_id}}'; //Récupérer les parents
-            str = str+',{{topic_id}}'; //Y rajouter la discussion en soi
+            if(str!=""){
+                str = str+',{{topic_id}}'; //Y rajouter la discussion en soi
+            }
+            else{
+                var str = '{{topic_id}}'; //Récupérer les parents  
+            }
             var liee_titre = [];
             var liee_id = [];
 
@@ -210,7 +245,16 @@
                 success: function(data) {
                     //Pour chaque discussion, comparer son arborescence (parents_id)
                     for(i in data.rows){
-                        if(data.rows[i].value.parents_id == str){
+                        var parents_t = "";
+                        for(var j in data.rows[i].value.parents){
+                            if (parents_t==""){
+                                parents_t = data.rows[i].value.parents[j].id;
+                            }
+                            else{
+                                parents_t+=","+data.rows[i].value.parents[j].id;
+                            }
+                        }
+                        if(parents_t == str){
                             //Récupérer les titres et id des discussions liées
                             liee_titre.push(data.rows[i].value.title);
                             liee_id.push(data.rows[i].value._id);
@@ -235,19 +279,35 @@
             $("#ident").ready(function(){
                 var utilisateur = verifierConnexion();
                 if(utilisateur){
-                    $("#ident").html('<a href="../../_rewrite/utilisateur/' + utilisateur + '">' + utilisateur + ' - <a href="#" onclick="deconnecter()">Deconnexion</a>');
+                    $("#ident").html('<a href="../utilisateur/' + utilisateur + '">' + utilisateur + '</a> - <a href="#" onclick="deconnecter()">Deconnexion</a>');
                     var formulaire = $("#form-commentaire");
                     formulaire.css('display','block'); 
                 }
             });
             
-            
+            /*
+             * N'afficher l'image associée à la discussion uniquement s'il y en a une
+             */
             $("#image-discussion").ready(function(){
                 var image = "{{image}}";
                 if(image){
                     $(".image-discussion").html('<img style="max-width: 700px;" src="http://127.0.0.1:5984/argile-forum/{{topic_id}}/{{image}}"/>');
                 }
             });
+            
+            /*
+             * N'afficher l'image associée à la discussion uniquement s'il y en a une
+             */
+            $("#liste_mots_cle").ready(function(){
+                var mots_cle = '{{mots_cle}}';
+                if(mots_cle){
+                    mots_cle = mots_cle.split(",");
+                    for(var i in mots_cle){
+                        $("#liste_mots_cle").append('<a href="../mot-cle/'+mots_cle[i]+'" class="mot_cle">'+mots_cle[i]+'</a>');
+                    }
+                }
+            });
+            
   	</script>
     </head>
     <body>
@@ -294,20 +354,19 @@
         <div id="content">
             <div id="topic">
                 <div id="resume">
-                    <table id="table-summary">              
-                        <tr>
-                            <td align="center" class="image-discussion"></td>
-                        </tr>
-                        <tr>
-                            <td class="message-cell">{{topic_text}}</td>
-                        </tr>
-                        <tr>
-                            <td align="right" class="post-author">Type : {{type_objet}}</td>
-                        </tr>
-                        <tr>
-                            <td align="right" class="post-author">{{auteur}}, {{date_modification}}</td>
-                        </tr>
-                    </table>                
+                    <div id="table-summary">              
+                        <div align="center" class="image-discussion"></div>
+                        <div class="message-cell">{{topic_text}}</div>
+                        <table id="table-summary">
+                            <tr>
+                                <td id="liste_mots_cle"></td>
+                                <td align="right" class="post-author">
+                                    <div>Type : {{type_objet}}</div>
+                                    <div>{{auteur}}, {{date_modification}}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>                
                 </div>
                 <!--
                 Affichage des commentaires
@@ -351,6 +410,9 @@
                                         <option value="objet">Objet</option>
                                     </select>
                                 </td>
+                            </tr>
+                            <tr>
+                                <td>Mots-clé (séparés par une virgule) <input type="text" name="mots_cle" id="mots_cle" value=""/></td>
                             </tr>
                             <tr>
                                 <td>

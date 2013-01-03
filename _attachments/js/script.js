@@ -1,8 +1,3 @@
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /*
  * Enregistrement d'un nouveau compte
  * @param {string}  login   Nom du nouvel utilisateur
@@ -67,9 +62,9 @@ function connecter(login,mdp){
 }
 
 /*
-*Vérifier via les cookies si la personne est connectée.
-*@return {string} Renvoie le nom de l'utilisateur ou null
-*/
+ * Vérifier via les cookies si la personne est connectée.
+ * @return {string} Renvoie le nom de l'utilisateur ou null
+ */
 function verifierConnexion(){
     
    //Via les expressions régulières
@@ -102,24 +97,27 @@ function deconnecter(){
  * @param {string}  titre    Titre (ou nom de l'objet) de la nouvelle discussion
  * @param {string}  texte    Texte descriptif de la discussion
  * @param {string}  type     Type de l'objet de la discussion : scene, objet, action...
- * @param {array}   lien     Tableau contenant les ID des parents de la discussion
- * @param {array}   titres   Tableau contenant les titre des parents de la discussion
+ * @param {string}  mots_cle Liste des mots-clés associés à une discussion
+ * @param {array}   lien     Tableau contenant les ID et titres des parents de la discussion
  * 
  * @return {string}          Retourne l'ID de la disccusion créée
  */
-function nouvelleConversation(auteur,titre,texte,type,lien,titres){
+function nouvelleConversation(auteur, titre, texte, type, mots_cle, lien){
     
     db = $.couch.db("argile-forum");
     
     var reload = false;
     
     if(lien==null){
-        var titres = ['Racine'];
-        var lien = ['Racine'];
+        //var titres = ['Racine'];
+        //var lien = ['Racine'];
+        var lien = [];
         
-        rediriger = true;
+        //var parents_t = ['Racine'];
+        
+        var rediriger = true;
     }
-    
+        
     var laDate = new Date();
     
     db.saveDoc(
@@ -131,9 +129,11 @@ function nouvelleConversation(auteur,titre,texte,type,lien,titres){
             text: texte,
             type_objet: type,
             answered:"no",
-            parents_id:lien,
-            parents_titre:titres,
-            auteur: auteur
+            //parents_id:lien,
+            //parents_titre:titres,
+            parents: lien,
+            auteur: auteur,
+            mots_cle: mots_cle
         },
         {
             success: function(data){
@@ -196,10 +196,10 @@ function nouveauCommentaire(auteur,id,name,text){
 }
 
 /*
-* Valider un commentaire
-* @param {string}   topic_id    ID de la discussion liée au commentaire. 
-* @param {string}   id          ID du commentaire à valider.
-*/
+ * Valider un commentaire
+ * @param {string}   topic_id    ID de la discussion liée au commentaire. 
+ * @param {string}   id          ID du commentaire à valider.
+ */
 function valider(topic_id,id){
 
     var top_id=topic_id;
@@ -217,9 +217,9 @@ function valider(topic_id,id){
 }
 
 /*
-* Invalider un commentaire
-* @param {string}   topic_id    ID de la discussion liée au commentaire. 
-*/
+ * Invalider un commentaire
+ * @param {string}   topic_id    ID de la discussion liée au commentaire. 
+ */
 function invalider(topic_id){
     
     var top_id=topic_id;
@@ -237,10 +237,10 @@ function invalider(topic_id){
 }
 
 /*
-* Récupérer les dernières discussions créées
-* @return {string}    Liste des discussions
-*                       Pas au format array, mais en chaine de caractère   
-*/
+ * Récupérer les dernières discussions créées
+ * @return {string}    Liste des discussions
+ *                       Pas au format array, mais en chaine de caractère   
+ */
 function discussionsRecentes(){
     
     var retour = "test";

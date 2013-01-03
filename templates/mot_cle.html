@@ -1,15 +1,14 @@
 <html>
     <head>
-        <title>Argile-forum</title>
-	<link rel="stylesheet" href="style/forum.css" type="text/css">
+        <title>Discussions ayant le mot-clé : {{cle}}</title>
+	<link rel="stylesheet" href="../../style/forum.css" type="text/css">
         <script src="/_utils/script/sha1.js"></script>
   	<script src="/_utils/script/json2.js"></script>
   	<script src="/_utils/script/jquery.js"></script>
   	<script src="/_utils/script/jquery.couch.js"></script>
         <script src="/_utils/script/jquery.form.js"></script>
-        <script src="js/script.js"></script>
+        <script src="../../js/script.js"></script>
 	<script type="text/javascript">
-            
             //Enregistrer un nouvel utilisateur
             function enregistrement(){
                 var login = $('#enregistrementNom').val();
@@ -26,21 +25,7 @@
                // alert("connexion");
                 connecter(login,mdp);
             }
-            
-            //Créer une nouvelle page de discussion
-            function creerDiscussion(){
-                var titre = $("input#title").val();
-                var mots_cle = $("input#mots_cle").val();
-                mots_cle = mots_cle.split(",");
-                var texte = $("#textarea-sum").val();
-                var typeObjet = document.getElementById("select-type");
-                var val_type_objet = typeObjet.options[typeObjet.selectedIndex].value;
-
-                var auteur = verifierConnexion();
-                
-                nouvelleConversation(auteur, titre, texte, val_type_objet, mots_cle, null);       
-            }
-        
+           
             //Afficher/Masquer le formulaire de connexion
             function afficherFormConnexion(){
                 var reg = document.getElementById("register");
@@ -83,6 +68,7 @@
             /*
              * Afficher la liste des discussions dernièrement créées
              */
+            
             $("#discussionsRecentes").ready(function(){
                 db = $.couch.db("argile-forum");
                 db.view("argile-forum/discussions-nouvelles", {
@@ -106,7 +92,7 @@
                         }
                     }
                 });
-            }); 
+            });
   	</script> 
     </head>
   <body>
@@ -138,8 +124,14 @@
             </form>
         </div>
           
-        <div id="question">
-          <h2>Fils de discussion</h2>
+        <div id="arborescence">
+            <div class="menus">
+                <ul id="arborescence-ul">
+                    <li class="menu-parent"><a href='../../_rewrite'>Accueil</a></li>
+                    <li class="menu-parent">></li>
+                    <li class="menu-ici"><a href="#">Mot-clé : {{cle}}</a></li>
+                </ul>
+            </div>
         </div>
         <!--
         Liste des discussions
@@ -168,52 +160,6 @@
                 {{/discussions}}
                 </table>
                                 
-                <!--
-                Formulaire de création de discussion
-                -->
-                <div id="nouveau-sujet" class="nouveau-sujet" style="display: none">
-                    <!--<form name="form" id="form" method="post" action="" enctype="multipart/form-data">-->
-                        <table>
-                                <tr>
-                                    <td>Nouveau fil de discussion</td>
-                                    <td><input type="text" name="title" id="title" value=""/></td>
-
-                                </tr>
-                                <tr>
-                                    <td>Type : </td>
-                                    <td><select id="select-type">
-                                            <option value="scene">Scène</option>
-                                            <option value="action">Action</option>
-                                            <option value="objet">Objet</option>
-                                        </select></td>
-
-                                </tr>
-                                <tr>
-                                    <td>Résumé :</td>
-                                    <!--<td><input type="text" name="text" id="text" value=""/></td>-->
-                                    <td><textarea rows="5" cols="80" id="textarea-sum"></textarea></td>
-                                </tr>
-                                <tr>
-                                    <td>Mots-clé (séparés par une virgule)</td>
-                                    <td><input type="text" name="mots_cle" id="mots_cle" value=""/></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Image (1Mo max) :
-                                    </td>
-                                    <td>
-                                        <form class="imageForm" method="post" action="" enctype="multipart/form-data">
-                                            <input type="text" name="_rev" id="_rev" placeholder="rev)" style="display:none;" />
-                                            <input type="file" name="_attachments" id="_attachments" multiple="multiple" />
-                                        </form>
-                                    </td>
-                                </tr>
-                        </table>
-                        <div class="send-button" onclick="creerDiscussion()">
-                            Envoyer
-                        </div>
-                    <!--</form>-->
-                </div>
             </div>
             <div id="discussionsRecentes">
                 <h4 class="header-related">

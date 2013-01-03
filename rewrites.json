@@ -6,6 +6,13 @@
                     "descending":"true"
                 }
 	},
+        {
+		"to": "_list/mot_cle/discussions", 
+		"from": "mot-cle/:cle",
+                "query":{
+                    "cle":":cle"
+                }
+	},
 	{
 		"to": "../../", 
 		"from": "", "method": "POST"

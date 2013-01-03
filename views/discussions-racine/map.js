@@ -1,5 +1,5 @@
 function(doc) {
-  if ((doc.type == "topic")&&(doc.parents_id == "Racine")) {
+  if ((doc.type == "topic")&&(doc.parents == "")) {
     emit(Date.parse(doc.modified), doc);
   }
 }
