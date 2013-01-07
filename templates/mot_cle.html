@@ -86,7 +86,7 @@
                         for(i in nouveau_titre){
                             var nouveau = document.createElement("div");
                             if (nouveau_titre[i]!=undefined) {
-                                nouveau.innerHTML = "<a href='_rewrite/discussion/"+nouveau_id[i]+"'>"+nouveau_titre[i]+"</a>";
+                                nouveau.innerHTML = "<a href='../discussion/"+nouveau_id[i]+"'>"+nouveau_titre[i]+"</a>";
                             }
                             listeNouveau.appendChild(nouveau);
                         }
@@ -151,7 +151,7 @@
                 {{#discussions}}
                     <tr>
                         <td class="topic-summary-row">
-                            <a href='_rewrite/discussion/{{id}}'>{{titre}}</a>
+                            <a href='../discussion/{{id}}'>{{titre}}</a>
                         </td>
                         <td class="topic-date-row">
                             {{date_modification}}
