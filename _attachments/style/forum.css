@@ -139,6 +139,7 @@ body
 #table-summary
 {
     width: 100%;
+    font-size: 14px;
 }
 #answers
 {
@@ -151,22 +152,35 @@ body
 .answer{
     margin: 5px;
     width: 99%;
-   
+   font-size: 14px;
 }
 .valid-answer
 {
     background-color: #A9C05F;
     margin: 5px;
+    width: 99%;
+    font-size: 14px;
+}
+.valid-answer-text
+{
+    font-size: 14px;
 }
 .valided
 {
     background-color: green;
     color: white;
     text-align: center;
+    width: 100px;
 }
 .valid
 {
     background-color: green;
+    color: white;
+    text-align: center;
+}
+.supprimer
+{
+    background-color: red;
     color: white;
     text-align: center;
 }
@@ -210,6 +224,7 @@ body
     font-weight: bold;
     /*font-size: 140%;*/
     vertical-align: top;
+    text-align: center;
     padding: 5px;
 }
 .vote-plus

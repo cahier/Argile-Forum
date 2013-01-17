@@ -8,106 +8,7 @@
   	<script src="/_utils/script/jquery.couch.js"></script>
         <script src="/_utils/script/jquery.form.js"></script>
         <script src="js/script.js"></script>
-	<script type="text/javascript">
-            
-            //Enregistrer un nouvel utilisateur
-            function enregistrement(){
-                var login = $('#enregistrementNom').val();
-                var mdp = $('#enregistrementMdp').val();
-                var email = $('#enregistrementEmail').val();
-                
-                enregistrer(login,mdp,email);
-            }
-            
-            //Se connecter
-            function connexion(){
-                var login = $('#connexionNom').val();
-                var mdp = $('#connexionMdp').val();
-               // alert("connexion");
-                connecter(login,mdp);
-            }
-            
-            //Créer une nouvelle page de discussion
-            function creerDiscussion(){
-                var titre = $("input#title").val();
-                var mots_cle = $("input#mots_cle").val();
-                mots_cle = mots_cle.split(",");
-                var texte = $("#textarea-sum").val();
-                var typeObjet = document.getElementById("select-type");
-                var val_type_objet = typeObjet.options[typeObjet.selectedIndex].value;
-
-                var auteur = verifierConnexion();
-                
-                nouvelleConversation(auteur, titre, texte, val_type_objet, mots_cle, null);       
-            }
-        
-            //Afficher/Masquer le formulaire de connexion
-            function afficherFormConnexion(){
-                var reg = document.getElementById("register");
-                var log = document.getElementById("login");
-                if(log.style.display=="none"){
-                    log.style.display="block";    
-                    reg.style.display="none";
-                }
-                else{
-                    log.style.display="none";
-                }  
-            }
-            
-            //Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte'
-            function afficherFormEnregistrement(){
-                reg = document.getElementById("register");
-                log = document.getElementById("login");
-                if(reg.style.display=="none"){
-                    reg.style.display="block";
-                    log.style.display="none";
-                }
-                else{
-                    reg.style.display="none";
-                }
-            }
-        
-            /*
-             * N'afficher le formulaire de création de sujet que si on est connecté
-             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
-             */
-            $("#ident").ready(function(){
-                var utilisateur = verifierConnexion();
-                if(utilisateur){                
-                    $("#ident").html('<a href="_rewrite/utilisateur/' + utilisateur + '">' + utilisateur + '</a> - <a href="#" onclick="deconnecter()">Deconnexion</a>');
-                    var formulaire = $("#nouveau-sujet");
-                    formulaire.css('display','block'); 
-                }
-            });  
-            
-            /*
-             * Afficher la liste des discussions dernièrement créées
-             */
-            $("#discussionsRecentes").ready(function(){
-                db = $.couch.db("argile-forum");
-                db.view("argile-forum/discussions-nouvelles", {
-                    limit: 10,
-                    success: function(data) {
-                        var nouveau_titre = [];
-                        var nouveau_id = [];
-                        for(i in data.rows){
-                                //Récupérer les titres et id des discussions liées
-                                nouveau_titre.unshift(data.rows[i].value.title);
-                                nouveau_id.unshift(data.rows[i].value._id);
-                        }
-
-                        var listeNouveau = document.getElementById("objet-nouveau");
-                        for(i in nouveau_titre){
-                            var nouveau = document.createElement("div");
-                            if (nouveau_titre[i]!=undefined) {
-                                nouveau.innerHTML = "<a href='_rewrite/discussion/"+nouveau_id[i]+"'>"+nouveau_titre[i]+"</a>";
-                            }
-                            listeNouveau.appendChild(nouveau);
-                        }
-                    }
-                });
-            }); 
-  	</script> 
+	
     </head>
   <body>
         <div id="header">
@@ -121,9 +22,11 @@
             <form id="form-login">
                 <input type="text" name="login" id="connexionNom" autofocus required placeholder="Nom d'utilisateur?">
                 <input type="password" name="mdp" id="connexionMdp" required placeholder="Mot de passe?"><br><br>
+                <a href="#" style="text-decoration: none">
                 <div class="send-button" onclick="connexion()">
                     Connexion
                 </div>
+                </a>
             </form>
         </div>
         <div id="register" style="display: none">
@@ -131,10 +34,18 @@
             <form id="form-register">
                 <input type="text" name="login" id="enregistrementNom" required placeholder="Nom d'utilisateur?">
                 <input type="password" name="mdp" id="enregistrementMdp" required placeholder="Mot de passe?">
-                <input type="email" name="email" id="enregistrementEmail" required placeholder="Email?"><br><br>
+                <input type="email" name="email" id="enregistrementEmail" required placeholder="Email?">
+                Role : <select id="enregistrementRole">
+                    <option value="basique">Basique</option>
+                    <option value="moderateur">Modérateur</option>
+                    <option value="administrateur">Administrateur</option>
+                </select>
+                <br><br>
+                <a href="#" style="text-decoration: none">
                 <div class="send-button" onclick="enregistrement()">
                     S'enregistrer
                 </div>
+                </a>
             </form>
         </div>
           
@@ -209,9 +120,11 @@
                                     </td>
                                 </tr>
                         </table>
+                    <a href="#" style="text-decoration: none">
                         <div class="send-button" onclick="creerDiscussion()">
                             Envoyer
                         </div>
+                        </a>
                     <!--</form>-->
                 </div>
             </div>
@@ -226,6 +139,108 @@
             
         </div>
         
+        <script type="text/javascript">
+           
+            //Enregistrer un nouvel utilisateur
+            function enregistrement(){
+                var login = $('#enregistrementNom').val();
+                var mdp = $('#enregistrementMdp').val();
+                var email = $('#enregistrementEmail').val();
+                var role = $('#enregistrementRole').val();
+                
+                enregistrer(login,mdp,email,role);
+            }
+            
+            //Se connecter
+            function connexion(){
+                var login = $('#connexionNom').val();
+                var mdp = $('#connexionMdp').val();
+               // alert("connexion");
+                connecter(login,mdp);
+            }
+            
+            //Créer une nouvelle page de discussion
+            function creerDiscussion(){
+                var titre = $("input#title").val();
+                var mots_cle = $("input#mots_cle").val();
+                mots_cle = mots_cle.split(",");
+                var texte = $("#textarea-sum").val();
+                var typeObjet = document.getElementById("select-type");
+                var val_type_objet = typeObjet.options[typeObjet.selectedIndex].value;
+
+                var auteur = verifierConnexion();
+                
+                nouvelleConversation(auteur, titre, texte, val_type_objet, mots_cle, null);       
+            }
         
+            //Afficher/Masquer le formulaire de connexion
+            function afficherFormConnexion(){
+                var reg = document.getElementById("register");
+                var log = document.getElementById("login");
+                if(log.style.display=="none"){
+                    log.style.display="block";    
+                    reg.style.display="none";
+                }
+                else{
+                    log.style.display="none";
+                }  
+            }
+            
+            //Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte'
+            function afficherFormEnregistrement(){
+                reg = document.getElementById("register");
+                log = document.getElementById("login");
+                if(reg.style.display=="none"){
+                    reg.style.display="block";
+                    log.style.display="none";
+                }
+                else{
+                    reg.style.display="none";
+                }
+            }
+        
+            /*
+             * N'afficher le formulaire de création de sujet que si on est connecté
+             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
+             */
+            $("#ident").ready(function(){
+                var utilisateur = verifierConnexion();
+                if(utilisateur){                
+                    $("#ident").html('<a href="_rewrite/utilisateur/' + utilisateur + '">' + utilisateur + '</a> - <a href="#" onclick="deconnecter()">Deconnexion</a>');
+                    var formulaire = $("#nouveau-sujet");
+                    formulaire.css('display','block'); 
+                    
+                    var role = verifierRole();
+                }
+            });  
+            
+            /*
+             * Afficher la liste des discussions dernièrement créées
+             */
+            $("#discussionsRecentes").ready(function(){
+                db = $.couch.db("argile-forum");
+                db.view("argile-forum/discussions-nouvelles", {
+                    limit: 10,
+                    success: function(data) {
+                        var nouveau_titre = [];
+                        var nouveau_id = [];
+                        for(i in data.rows){
+                                //Récupérer les titres et id des discussions liées
+                                nouveau_titre.unshift(data.rows[i].value.title);
+                                nouveau_id.unshift(data.rows[i].value._id);
+                        }
+
+                        var listeNouveau = document.getElementById("objet-nouveau");
+                        for(i in nouveau_titre){
+                            var nouveau = document.createElement("div");
+                            if (nouveau_titre[i]!=undefined) {
+                                nouveau.innerHTML = "<a href='_rewrite/discussion/"+nouveau_id[i]+"'>"+nouveau_titre[i]+"</a>";
+                            }
+                            listeNouveau.appendChild(nouveau);
+                        }
+                    }
+                });
+            }); 
+  	</script> 
     </body>
 </html>

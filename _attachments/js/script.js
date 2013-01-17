@@ -44,9 +44,11 @@ function connecter(login,mdp){
         success: function(data) {
             for(i in data.rows){
                 if((data.rows[i].value.nom_utilisateur == login)&&(data.rows[i].value.mot_de_passe == mdp)){
-                    var today = new Date(), expires = new Date();
+                var today = new Date(), expires = new Date();
                     expires.setTime(today.getTime() + (365*24*60*60*1000));
+                    //document.cookie = "loginForum" + "=" + encodeURIComponent(login) + ";roleForum="+encodeURIComponent(data.rows[i].value.role)+";expires=" + expires.toGMTString() +"; path=/";
                     document.cookie = "loginForum" + "=" + encodeURIComponent(login) + ";expires=" + expires.toGMTString() +"; path=/";
+                    document.cookie = "roleForum="+encodeURIComponent(data.rows[i].value.role)+";expires=" + expires.toGMTString() +"; path=/";
                     reussi = true;                 
                     window.location.reload();
                 }
@@ -69,7 +71,21 @@ function verifierConnexion(){
     
    //Via les expressions régulières
    var oRegex = new RegExp("(?:; )?" + "loginForum" + "=([^;]*);?");
- 
+
+    if (oRegex.test(document.cookie)) {
+            return decodeURIComponent(RegExp["$1"]);
+    } else {
+            return null;
+    }
+    
+    
+}
+
+function verifierRole(){
+    
+   //Via les expressions régulières
+   var oRegex = new RegExp("(?:; )?" + "roleForum" + "=([^;]*);?");
+
     if (oRegex.test(document.cookie)) {
             return decodeURIComponent(RegExp["$1"]);
     } else {
@@ -87,6 +103,7 @@ function deconnecter(){
     var cookie_date = new Date ( );  // current date & time
     cookie_date.setTime ( cookie_date.getTime() - 10 );
     document.cookie = "loginForum" + "=; expires=" + cookie_date.toGMTString() +"; path=/";
+    document.cookie = "roleForum" + "=; expires=" + cookie_date.toGMTString() +"; path=/";
     
     window.location.reload();
 }
@@ -129,6 +146,7 @@ function nouvelleConversation(auteur, titre, texte, type, mots_cle, lien){
             text: texte,
             type_objet: type,
             answered:"no",
+            answered_date:"no",
             //parents_id:lien,
             //parents_titre:titres,
             parents: lien,
@@ -140,7 +158,6 @@ function nouvelleConversation(auteur, titre, texte, type, mots_cle, lien){
                 $('input#_rev').val(data.rev);
                 $('form.imageForm').ajaxSubmit({
                   url: "/argile-forum/"+ data.id,
-                  async: false,
                   success: function(response) {
 
                   }
@@ -203,11 +220,13 @@ function nouveauCommentaire(auteur,id,name,text){
 function valider(topic_id,id){
 
     var top_id=topic_id;
+    var laDate = new Date();
 
     db = $.couch.db("argile-forum");
     db.openDoc(top_id, {
         success: function(doc) {
             doc.answered=id;
+            doc.answered_date=laDate.toString();
             db.saveDoc(doc, {
                 success: function() {
                     document.location.reload(true);
@@ -228,10 +247,25 @@ function invalider(topic_id){
     db.openDoc(top_id, {
         success: function(doc) {
             doc.answered="no";
+            doc.answered_date="no";
             db.saveDoc(doc, {
                 success: function() {
                     document.location.reload(true);
                 }});
+        }
+    });
+}
+
+/*
+ * Supprimer un commentaire
+ * @param {string}   id          ID du commentaire à supprimer.
+ */
+function supprimer(id,rev){
+
+    db = $.couch.db("argile-forum");
+    db.removeDoc({_id:id, _rev: rev}, {
+        success: function(doc) {
+            document.location.reload(true);
         }
     });
 }

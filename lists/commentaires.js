@@ -23,6 +23,7 @@ function(head, req) {
         data.topic_id = row.value._id;
         data.topic_text = row.value.text;
         data.answered = row.value.answered;
+        data.answered_date = row.value.answered_date;
         data.date_modification = row.value.created;
         data.type_objet = row.value.type_objet;
         data.auteur = row.value.auteur;
@@ -41,6 +42,7 @@ function(head, req) {
     	data.commentaires.push({
             order: ++i,
             id: row.id,
+            rev: row.value._rev,
             text: row.value.text,
             vote_negatif: row.value.vote_negatif,
             vote_positif: row.value.vote_positif,
@@ -52,6 +54,7 @@ function(head, req) {
         if(row.id==data.answered){
             data.answered_text = row.value.text;
             data.answered_count = row.value.vote_count;
+            data.answered_author = row.value.auteur;
         }
     }
   }

@@ -8,49 +8,7 @@
   	<script src="/_utils/script/jquery.couch.js"></script> 
         <script src="/_utils/script/jquery.form.js"></script>
         <script src="../../js/script.js"></script>
-	<script type="text/javascript">
-            
-            $(function() {
-                $('form.documentForm').submit(function(e) {
-          
-                    e.preventDefault();
-
-                    // Get the user supplied details
-                    var input_db = $('.documentForm input#_db').val()
-                    var input_test = $('.documentForm input#test').val()
-                    var input_rev = $('.documentForm input#_rev').val()
-
-                    $.couch.db("argile-forum").saveDoc({"_id":input_test}, {
-                        success: function(couchDoc) {
-                          // Now that the Couch Doc exists, we can submit the attachment,
-                          // but before submitting we have to define the revision of the Couch
-                          // Doc so that it gets passed along in the form submit.
-                          $('.documentForm input#_rev').val(couchDoc.rev);
-                          $('form.documentForm').ajaxSubmit({
-                            // Submit the form with the attachment
-                            url: "/argile-forum/"+ couchDoc.id,
-                            success: function(response) {
-                              alert("Your attachment was submitted.")
-                            }
-                          })
-                        }
-                      })
-
-                }) /* End form.documentForm submit */
-            }) /* End jQuery ready */
-            
-            
-            /*
-             * N'afficher le formulaire d'ajout de commentaire que si on est connecté
-             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
-             */
-            $("#ident").ready(function(){
-                var utilisateur = verifierConnexion();
-                if(utilisateur){
-                    $("#ident").html('<a href="../utilisateur/' + utilisateur + '">' + utilisateur + '</a> - <a href="#" onclick="deconnecter()">Deconnexion</a>');
-                }
-            });
-  	</script> 
+	
     </head>
   <body>
         <div id="header">
@@ -143,6 +101,48 @@
             
         </div>
         
-        
+        <script type="text/javascript">
+            
+            $(function() {
+                $('form.documentForm').submit(function(e) {
+          
+                    e.preventDefault();
+
+                    // Get the user supplied details
+                    var input_db = $('.documentForm input#_db').val()
+                    var input_test = $('.documentForm input#test').val()
+                    var input_rev = $('.documentForm input#_rev').val()
+
+                    $.couch.db("argile-forum").saveDoc({"_id":input_test}, {
+                        success: function(couchDoc) {
+                          // Now that the Couch Doc exists, we can submit the attachment,
+                          // but before submitting we have to define the revision of the Couch
+                          // Doc so that it gets passed along in the form submit.
+                          $('.documentForm input#_rev').val(couchDoc.rev);
+                          $('form.documentForm').ajaxSubmit({
+                            // Submit the form with the attachment
+                            url: "/argile-forum/"+ couchDoc.id,
+                            success: function(response) {
+                              alert("Your attachment was submitted.")
+                            }
+                          })
+                        }
+                      })
+
+                }) /* End form.documentForm submit */
+            }) /* End jQuery ready */
+            
+            
+            /*
+             * N'afficher le formulaire d'ajout de commentaire que si on est connecté
+             * Afficher aussi le nom d'utilisateur et le lien de déconnexion
+             */
+            $("#ident").ready(function(){
+                var utilisateur = verifierConnexion();
+                if(utilisateur){
+                    $("#ident").html('<a href="../utilisateur/' + utilisateur + '">' + utilisateur + '</a> - <a href="#" onclick="deconnecter()">Deconnexion</a>');
+                }
+            });
+  	</script> 
     </body>
 </html>
