@@ -257,3 +257,8 @@ body
     line-height: 2.4;
     white-space: nowrap;
 }
+
+#ajouter-membres{
+    clear:both;
+    display:none;
+}

@@ -8,34 +8,46 @@
   	<script src="/_utils/script/jquery.couch.js"></script> 
         <script src="/_utils/script/jquery.form.js"></script>
         <script src="../../js/script.js"></script>
-	
+        <script src="../../js/md5.js"></script>
+        <script type="text/javascript">
+            var utilisateur_actuelle = verifierConnexion();
+            var utilisateur_lien = "{{nomUtilisateur}}"; 
+            if((!utilisateur_actuelle)||(utilisateur_actuelle!=utilisateur_lien)){
+                window.location = "../../_rewrite";
+            }
+        </script>
     </head>
   <body>
         <div id="header">
-            <div id="titre">Argile-forum</a></div>
+            <div id="titre">Argile-forum</div>
             <div id="ident">
+                <!-- Entete avec possibilité de s'enregistrer pour tous. On le met en commentaire pour le masquer -->
+                <!--
                 <a href="#" onclick="afficherFormConnexion()">Connexion</a> - <a href="#" onclick="afficherFormEnregistrement()">S'enregistrer</a>
+                -->
+                <!-- Entete avec uniquement connexion -->
+                <a href="#" onclick="afficherFormConnexion()">Connexion</a>
             </div>
         </div>
-        <div id="login" style="display: none">
-            <h2>Connexion</h2>
-            <form id="form-login">
-                <input type="text" name="login" id="connexionNom" autofocus required placeholder="Nom d'utilisateur?">
-                <input type="password" name="mdp" id="connexionMdp" required placeholder="Mot de passe?"><br><br>
-                <div class="send-button" onclick="connexion()">
-                    Connexion
-                </div>
-            </form>
-        </div>
+      <!-- Formulaire de création de compte -->
         <div id="register" style="display: none">
             <h2>S'enregistrer</h2>
             <form id="form-register">
                 <input type="text" name="login" id="enregistrementNom" required placeholder="Nom d'utilisateur?">
                 <input type="password" name="mdp" id="enregistrementMdp" required placeholder="Mot de passe?">
                 <input type="email" name="email" id="enregistrementEmail" required placeholder="Email?"><br><br>
+                Role : <select id="enregistrementRole">
+                    <option value="basique">Basique</option>
+                    <option value="moderateur">Modérateur</option>
+                    <option value="administrateur">Administrateur</option>
+                    <option value="recruteur">Recruteur</option>
+                </select>
+                <br><br>
+                <a href="#" style="text-decoration: none">
                 <div class="send-button" onclick="enregistrement()">
                     S'enregistrer
                 </div>
+                </a>
             </form>
         </div>
         
@@ -49,53 +61,66 @@
             </div>
         </div>
       
-            <div class="topic" id="topic">
-                
-                <table id="topic-summary">
-                    <tr class="topic-row-header">
-                        <td class="topic-summary-row-title">
-                            
-                        </td>
-                        <td class="topic-summary-row">
-                            
-                        </td>
-                    </tr>               
-                    <tr>
-                        <td class="topic-summary-row">
-                            Nom utilisateur :
-                        </td>
-                        <td class="topic-date-row">
-                            {{nomUtilisateur}}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="topic-summary-row">
-                            Email :
-                        </td>
-                        <td class="topic-date-row">
-                            {{email}}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="topic-summary-row">
-                            Type d'utilisateur :
-                        </td>
-                        <td class="topic-date-row">
-                            {{type}}
-                        </td>
-                    </tr>
-                </table>
-                                
-            </div>
-      
-        <div id="question" style="clear:both;">
-          <h2>Parrainer un nouvel utilisateur</h2>
+      <!-- Tableau récapitulatif de l'utiisateur -->  
+      <div class="topic" id="topic">
+            <table id="topic-summary">
+                <tr class="topic-row-header">
+                    <td class="topic-summary-row-title">
+
+                    </td>
+                    <td class="topic-summary-row">
+
+                    </td>
+                </tr>               
+                <tr>
+                    <td class="topic-summary-row">
+                        Nom utilisateur :
+                    </td>
+                    <td class="topic-date-row">
+                        {{nomUtilisateur}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="topic-summary-row">
+                        Email :
+                    </td>
+                    <td class="topic-date-row">
+                        {{email}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="topic-summary-row">
+                        Type d'utilisateur :
+                    </td>
+                    <td class="topic-date-row">
+                        {{type}}
+                    </td>
+                </tr>
+            </table>
+
         </div>
       
-        
-        Pour parrainer un nouvel utilisateur, il suffit de transmettre à ce dernier le lien suivant : 
-        <div id="parrainage">{{id}}</div>
-      
+        <!-- Formulaire de création de compte, réservé au recruteur -->
+        <div id="ajouter-membres">
+            <h2>Enregistrer de nouveaux membres :</h2>
+            <form id="form-ajouter-membres">
+                <input type="text" name="login" id="nouveauNom" required placeholder="Nom d'utilisateur?">
+                <input type="password" name="mdp" id="nouveauMdp" required placeholder="Mot de passe?">
+                <input type="email" name="email" id="nouveauEmail" required placeholder="Email?">
+                Role : <select id="nouveauRole">
+                    <option value="basique">Basique</option>
+                    <option value="moderateur">Modérateur</option>
+                    <option value="administrateur">Administrateur</option>
+                    <option value="recruter">Recruteur</option>
+                </select>
+                <br><br>
+                <a href="#" style="text-decoration: none">
+                <div class="send-button" onclick="ajouterMembre()">
+                    S'enregistrer
+                </div>
+                </a>
+            </form>
+        </div>    
         
         <div id="footer">
             
@@ -103,34 +128,52 @@
         
         <script type="text/javascript">
             
-            $(function() {
-                $('form.documentForm').submit(function(e) {
-          
-                    e.preventDefault();
-
-                    // Get the user supplied details
-                    var input_db = $('.documentForm input#_db').val()
-                    var input_test = $('.documentForm input#test').val()
-                    var input_rev = $('.documentForm input#_rev').val()
-
-                    $.couch.db("argile-forum").saveDoc({"_id":input_test}, {
-                        success: function(couchDoc) {
-                          // Now that the Couch Doc exists, we can submit the attachment,
-                          // but before submitting we have to define the revision of the Couch
-                          // Doc so that it gets passed along in the form submit.
-                          $('.documentForm input#_rev').val(couchDoc.rev);
-                          $('form.documentForm').ajaxSubmit({
-                            // Submit the form with the attachment
-                            url: "/argile-forum/"+ couchDoc.id,
-                            success: function(response) {
-                              alert("Your attachment was submitted.")
-                            }
-                          })
-                        }
-                      })
-
-                }) /* End form.documentForm submit */
-            }) /* End jQuery ready */
+            var role = verifierRole();
+            if(role=="recruteur"){
+                $('#ajouter-membres').css("display","block");
+            }
+                        
+            
+            /*
+             * Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte
+             */
+            function afficherFormEnregistrement(){
+                reg = document.getElementById("register");
+                log = document.getElementById("login");
+                if(reg.style.display=="none"){
+                    reg.style.display="block";
+                    log.style.display="none";
+                }
+                else{
+                    reg.style.display="none";
+                }
+            }
+            
+            /*
+             * Enregistrer un nouvel utilisateur
+             */
+            function enregistrement(){
+                var login = $('#enregistrementNom').val();
+                var mdp = $('#enregistrementMdp').val();
+                var email = $('#enregistrementEmail').val();
+                var role = $('#enregistrementRole').val();
+                
+                enregistrer(login,mdp,email,role);
+            }
+            
+            //Enregistrer un nouvel utilisateur
+            function ajouterMembre(){
+                var login = $('#nouveauNom').val();
+                var mdp = $('#nouveauMdp').val();
+                var email = $('#nouveauEmail').val();
+                var role = $('#nouveauRole').val();
+                //On crée le compte et on réinitialise le formulaire
+                enregistrer(login,mdp,email,role,true);
+                alert("Utilisateur ajouté");
+                $('#nouveauNom').val() == "";
+                $('#nouveauMdp').val() == "";
+                $('#nouveauEmail').val() == "";
+            }
             
             
             /*

@@ -8,15 +8,22 @@
   	<script src="/_utils/script/jquery.couch.js"></script>
         <script src="/_utils/script/jquery.form.js"></script>
         <script src="../../js/script.js"></script>
+        <script src="../../js/md5.js"></script>
 	
     </head>
     <body>
          <div id="header">
             <div id="titre">Argile-forum</div>
             <div id="ident">
+                <!-- Entete avec possibilité de s'enregistrer pour tous. On le met en commentaire pour le masquer -->
+                <!--
                 <a href="#" onclick="afficherFormConnexion()">Connexion</a> - <a href="#" onclick="afficherFormEnregistrement()">S'enregistrer</a>
+                -->
+                <!-- Entete avec uniquement connexion -->
+                <a href="#" onclick="afficherFormConnexion()">Connexion</a>
             </div>
         </div>
+        <!-- Formulaire de connexion -->
         <div id="login" style="display: none">
             <h2>Connexion</h2>
             <form id="form-login">
@@ -29,6 +36,7 @@
                 </a>
             </form>
         </div>
+        <!-- Formulaire de création de compte -->
         <div id="register" style="display: none">
             <h2>S'enregistrer</h2>
             <form id="form-register">
@@ -39,6 +47,7 @@
                     <option value="basique">Basique</option>
                     <option value="moderateur">Modérateur</option>
                     <option value="administrateur">Administrateur</option>
+                    <option value="recruteur">Recruteur</option>
                 </select>
                 <br><br>
                 <a href="#" style="text-decoration: none">
@@ -160,7 +169,9 @@
             
         </div>
         <script type="text/javascript">
-            //Enregistrer un nouvel utilisateur
+            /*
+             * Enregistrer un nouvel utilisateur
+             */
             function enregistrement(){
                 var login = $('#enregistrementNom').val();
                 var mdp = $('#enregistrementMdp').val();
@@ -177,7 +188,6 @@
                 
                 var login = $('#connexionNom').val();
                 var mdp = $('#connexionMdp').val();
-               // alert("connexion");
                 connecter(login,mdp);
             }
             
@@ -193,7 +203,6 @@
                             doc.vote_positif++;
                             db.saveDoc(doc, {
                                 success: function() {
-                                //alert("doc saved");
                                 var count = $("#positif_"+id);
                                 count.text(doc.vote_positif);
                                 }});
@@ -214,7 +223,6 @@
                         doc.vote_negatif++;
                         db.saveDoc(doc, {
                             success: function() {
-                            //alert("doc saved");
                             var count = $("#negatif_"+id);
                             count.text(doc.vote_negatif);
                             }});
@@ -222,7 +230,9 @@
                 });
             }
                  
-            //Ajouter un nouveau commentaire
+            /*
+            * Ajouter un nouveau commentaire
+            */
             function ajouterCommentaire(){
 
                 var comment = $("#textarea-answer").val();
@@ -255,23 +265,28 @@
                         }
                     }
                     
+                    //Ajouter comme parent la discussion actuelle
                     parents_t.push({
                         id: '{{topic_id}}',
                         titre: '{{topic}}'
                     });
                                         
+                    //Récupérer les mots-clés
                     var mots_cle = $("input#mots_cle").val();
                     mots_cle = mots_cle.split(",");
                                         
+                    //Créer la discussion suite à ce commentaire (fonction dans script.js)
                     var idConversation = nouvelleConversation(auteur,titre,"Nouvelle page de discussion concernant "+titre, val_type_objet, mots_cle, parents_t);                
                     
                     comment = comment + " Je crée une nouvelle discussion concernant '" + titre + "'.";
                 }
-  
+                //Créer le commentaire (fonction dans script.js)
                 nouveauCommentaire(auteur,"{{topic_id}}","{{topic}}",comment);
             }           
             
-            //Afficher/Masquer le formulaire de connexion
+            /*
+             * Afficher/Masquer le formulaire de connexion
+             */
             function afficherFormConnexion(){
                 reg = document.getElementById("register");
                 log = document.getElementById("login");
@@ -284,7 +299,9 @@
                 }  
             }
             
-            //Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte
+            /*
+             * Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte
+             */
             function afficherFormEnregistrement(){
                 reg = document.getElementById("register");
                 log = document.getElementById("login");
@@ -298,7 +315,9 @@
             }
             
             
-            //Afficher la réponse validée en avant ou pas dans la description de la discussion
+            /*
+             * Afficher la réponse validée en avant ou pas dans la description de la discussion
+             */
             $("#summary").ready(function(){
                 
                 var answered = '{{answered}}';
@@ -310,6 +329,7 @@
                     
                     var role = verifierRole();
                     if(role=="administrateur"){
+                        //Si l'utilisateur est administrateur, il a accès au bouton invalider'
                         ligne.innerHTML = "<tr><td class='valided'>Réponse</td>\
                             <td class='message-cell'>\
                                 <table>\
@@ -321,6 +341,7 @@
                                 </table>\
                             </td></tr><tr><td class='invalid' onclick='invalider(\"{{topic_id}}\")'><a href='#' style='text-decoration: none; color: white;'><div>Invalider</div></a></td><td align='right' class='post-author'>{{answered_author}}, validé le {{answered_date}}</td></tr>";                    }
                     else{
+                        //Sinon, il n'y a pas accès'
                         ligne.innerHTML = "<tr><td class='valided'>Réponse</td>\
                             <td class='message-cell'>\
                                 <table>\
@@ -338,7 +359,9 @@
                                      
             });
             
-            //Afficher l'arborescence des documents
+            /*
+             * Afficher l'arborescence des documents
+             */
             $("#arborescence").ready(function(){
                 
                 //Récupérer la liste des id/titres des parents de l'objet'
@@ -359,21 +382,16 @@
                     for(var i in parents_titre){
                         var parent = document.createElement("li");
                         parent.className = "menu-parent";
+                        
+                        //Sinon, le lien vers l'objet'
+                        parent.innerHTML = "<a href='"+parents_id[i]+"'>"+parents_titre[i]+"</a>";
 
-                        /*if(parents_titre[i]=='Racine'){
-                            //Premier élément de l'arborescence : Accueil'
-                            parent.innerHTML = "<a href='../../_rewrite'>Accueil</a>";
-                        }
-                        else{*/
-                            //Sinon, le lien vers l'objet'
-                            parent.innerHTML = "<a href='"+parents_id[i]+"'>"+parents_titre[i]+"</a>";
-
-                            //Simple séparateur >
-                            var parent_lien = document.createElement("li");
-                            parent_lien.className = "menu-parent";
-                            parent_lien.innerHTML = ">";     
-                            menu.appendChild(parent_lien);
-                        //}
+                        //Simple séparateur >
+                        var parent_lien = document.createElement("li");
+                        parent_lien.className = "menu-parent";
+                        parent_lien.innerHTML = ">";     
+                        menu.appendChild(parent_lien);
+                            
                         menu.appendChild(parent);
                     }
                 }
@@ -404,7 +422,7 @@
             var liee_titre = [];
             var liee_id = [];
 
-            //Récupérer l'ensemble des discussions
+            //Récupérer l'ensemble des discussions 
             db = $.couch.db("argile-forum");
             db.view("argile-forum/discussions", {
                 success: function(data) {

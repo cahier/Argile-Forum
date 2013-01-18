@@ -15,7 +15,7 @@ function(head, req) {
   
   //Pour chaque document récupéré, traiter les données
   while (row = getRow()) {
-    //Si c'est un document topic, page de discussion
+    //Si c'est un document utilisateur
     data.id = row.id;
     data.nomUtilisateur = row.value.nom_utilisateur;
     data.email = row.value.email;

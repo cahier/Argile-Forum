@@ -8,15 +8,22 @@
   	<script src="/_utils/script/jquery.couch.js"></script>
         <script src="/_utils/script/jquery.form.js"></script>
         <script src="js/script.js"></script>
+        <script src="js/md5.js"></script>
 	
     </head>
   <body>
         <div id="header">
             <div id="titre">Argile-forum</div>
             <div id="ident">
+                <!-- Entete avec possibilité de s'enregistrer pour tous. On le met en commentaire pour le masquer -->
+                <!--
                 <a href="#" onclick="afficherFormConnexion()">Connexion</a> - <a href="#" onclick="afficherFormEnregistrement()">S'enregistrer</a>
+                -->
+                <!-- Entete avec uniquement connexion -->
+                <a href="#" onclick="afficherFormConnexion()">Connexion</a>
             </div>
         </div>
+        <!-- Formulaire de connexion -->
         <div id="login" style="display: none">
             <h2>Connexion</h2>
             <form id="form-login">
@@ -29,6 +36,7 @@
                 </a>
             </form>
         </div>
+        <!-- Formulaire de création de compte. -->
         <div id="register" style="display: none">
             <h2>S'enregistrer</h2>
             <form id="form-register">
@@ -39,6 +47,7 @@
                     <option value="basique">Basique</option>
                     <option value="moderateur">Modérateur</option>
                     <option value="administrateur">Administrateur</option>
+                    <option value="recruteur">Recruteur</option>
                 </select>
                 <br><br>
                 <a href="#" style="text-decoration: none">
@@ -66,7 +75,8 @@
                         <td class="topic-summary-row">
                             Date de modifitcation
                         </td>
-                    </tr>               
+                    </tr>
+                <!-- Boucle pour afficher les discussions  -->
                 {{#discussions}}
                     <tr>
                         <td class="topic-summary-row">
@@ -83,7 +93,6 @@
                 Formulaire de création de discussion
                 -->
                 <div id="nouveau-sujet" class="nouveau-sujet" style="display: none">
-                    <!--<form name="form" id="form" method="post" action="" enctype="multipart/form-data">-->
                         <table>
                                 <tr>
                                     <td>Nouveau fil de discussion</td>
@@ -101,7 +110,6 @@
                                 </tr>
                                 <tr>
                                     <td>Résumé :</td>
-                                    <!--<td><input type="text" name="text" id="text" value=""/></td>-->
                                     <td><textarea rows="5" cols="80" id="textarea-sum"></textarea></td>
                                 </tr>
                                 <tr>
@@ -124,10 +132,10 @@
                         <div class="send-button" onclick="creerDiscussion()">
                             Envoyer
                         </div>
-                        </a>
-                    <!--</form>-->
+                    </a>
                 </div>
             </div>
+            <!-- Les dix dernières discussions créées -->
             <div id="discussionsRecentes">
                 <h4 class="header-related">
                     Derniers objets créés
@@ -141,7 +149,9 @@
         
         <script type="text/javascript">
            
-            //Enregistrer un nouvel utilisateur
+            /*
+             * Enregistrer un nouvel utilisateur
+             */
             function enregistrement(){
                 var login = $('#enregistrementNom').val();
                 var mdp = $('#enregistrementMdp').val();
@@ -151,7 +161,9 @@
                 enregistrer(login,mdp,email,role);
             }
             
-            //Se connecter
+            /*
+             * Se connecter
+             */
             function connexion(){
                 var login = $('#connexionNom').val();
                 var mdp = $('#connexionMdp').val();
@@ -159,21 +171,26 @@
                 connecter(login,mdp);
             }
             
-            //Créer une nouvelle page de discussion
+            /*
+             * Créer une nouvelle page de discussion
+             */
             function creerDiscussion(){
+                //On récupère les valeurs du formulaire
                 var titre = $("input#title").val();
                 var mots_cle = $("input#mots_cle").val();
                 mots_cle = mots_cle.split(",");
                 var texte = $("#textarea-sum").val();
                 var typeObjet = document.getElementById("select-type");
                 var val_type_objet = typeObjet.options[typeObjet.selectedIndex].value;
-
+                //On récupère le nom de l'auteur'
                 var auteur = verifierConnexion();
-                
+                //On crée la nouvelle conversation (fonction dans script.js)
                 nouvelleConversation(auteur, titre, texte, val_type_objet, mots_cle, null);       
             }
         
-            //Afficher/Masquer le formulaire de connexion
+            /*
+             * Afficher/Masquer le formulaire de connexion
+             */
             function afficherFormConnexion(){
                 var reg = document.getElementById("register");
                 var log = document.getElementById("login");
@@ -186,7 +203,9 @@
                 }  
             }
             
-            //Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte'
+            /*
+             * Afficher/Masquer le formulaire d'enregistrement d'un nouveau compte'
+             */
             function afficherFormEnregistrement(){
                 reg = document.getElementById("register");
                 log = document.getElementById("login");
@@ -221,6 +240,7 @@
                 db = $.couch.db("argile-forum");
                 db.view("argile-forum/discussions-nouvelles", {
                     limit: 10,
+                    descending: true,
                     success: function(data) {
                         var nouveau_titre = [];
                         var nouveau_id = [];
@@ -229,7 +249,7 @@
                                 nouveau_titre.unshift(data.rows[i].value.title);
                                 nouveau_id.unshift(data.rows[i].value._id);
                         }
-
+                        //Afficher les discussions récupérées
                         var listeNouveau = document.getElementById("objet-nouveau");
                         for(i in nouveau_titre){
                             var nouveau = document.createElement("div");

@@ -4,8 +4,9 @@
  * @param {string}  mdp     Mot de passe choisi
  * @param {string}  email   Email du nouvel utilisateur
  * @param {string}  role    Role du nouvel utilisateur
+ * @param {string}  recrut  Si utilisateur ajouté par un recruteur
  */
-function enregistrer(login,mdp,email,role){
+function enregistrer(login,mdp,email,role,recrut){
     
     if(!role){
         var role = "basique";
@@ -19,13 +20,16 @@ function enregistrer(login,mdp,email,role){
         {
             type : "utilisateur", 
             nom_utilisateur : login,
-            mot_de_passe : mdp,
+            mot_de_passe : hex_md5(mdp),
             email : email,
             role: role,
             created : laDate.toString()
         },
         {success: function(data){
-            connecter(login,mdp);
+            //On se connecte tout de suite après enregistrement, sauf si c'est via un recruteur'
+            if((!recrut)||(recrut==null)){
+                connecter(login,mdp);
+            }
         }}
     );
 }
@@ -37,16 +41,18 @@ function enregistrer(login,mdp,email,role){
  */
 function connecter(login,mdp){
     
+    //Pour savoir si on recharge la page après connexion ou si on affiche une erreur de connexion
     var reussi = false;
     
     db = $.couch.db("argile-forum");
     db.view("argile-forum/utilisateurs", {
         success: function(data) {
+            //On cherche document par document si on trouve l'utilisateur'
             for(i in data.rows){
-                if((data.rows[i].value.nom_utilisateur == login)&&(data.rows[i].value.mot_de_passe == mdp)){
-                var today = new Date(), expires = new Date();
+                if((data.rows[i].value.nom_utilisateur == login)&&((data.rows[i].value.mot_de_passe == mdp)||(data.rows[i].value.mot_de_passe == hex_md5(mdp)))){
+                    var today = new Date(), expires = new Date();
                     expires.setTime(today.getTime() + (365*24*60*60*1000));
-                    //document.cookie = "loginForum" + "=" + encodeURIComponent(login) + ";roleForum="+encodeURIComponent(data.rows[i].value.role)+";expires=" + expires.toGMTString() +"; path=/";
+                    //On enregistre dans les cookies le nom et le role de l'utilisateur'
                     document.cookie = "loginForum" + "=" + encodeURIComponent(login) + ";expires=" + expires.toGMTString() +"; path=/";
                     document.cookie = "roleForum="+encodeURIComponent(data.rows[i].value.role)+";expires=" + expires.toGMTString() +"; path=/";
                     reussi = true;                 
@@ -68,11 +74,11 @@ function connecter(login,mdp){
  * @return {string} Renvoie le nom de l'utilisateur ou null
  */
 function verifierConnexion(){
-    
-   //Via les expressions régulières
+   //Via les expressions régulières, on récupère le nom utilisateur
    var oRegex = new RegExp("(?:; )?" + "loginForum" + "=([^;]*);?");
 
     if (oRegex.test(document.cookie)) {
+            //On revoie le nom d'utilisateur'
             return decodeURIComponent(RegExp["$1"]);
     } else {
             return null;
@@ -82,11 +88,11 @@ function verifierConnexion(){
 }
 
 function verifierRole(){
-    
-   //Via les expressions régulières
+   //Via les expressions régulières, on récupère le rôle
    var oRegex = new RegExp("(?:; )?" + "roleForum" + "=([^;]*);?");
 
     if (oRegex.test(document.cookie)) {
+            //On renvoie le role de l'utilsiateur connecté'
             return decodeURIComponent(RegExp["$1"]);
     } else {
             return null;
@@ -125,13 +131,10 @@ function nouvelleConversation(auteur, titre, texte, type, mots_cle, lien){
     
     var reload = false;
     
+    //S'il s'agit d'une nouvelle discussion sans parent/lien'
     if(lien==null){
-        //var titres = ['Racine'];
-        //var lien = ['Racine'];
         var lien = [];
-        
-        //var parents_t = ['Racine'];
-        
+                
         var rediriger = true;
     }
         
@@ -155,15 +158,17 @@ function nouvelleConversation(auteur, titre, texte, type, mots_cle, lien){
         },
         {
             success: function(data){
+                //Une fois la discution créée, on peut attacher l'image
                 $('input#_rev').val(data.rev);
                 $('form.imageForm').ajaxSubmit({
                   url: "/argile-forum/"+ data.id,
+                  //async:false,
                   success: function(response) {
 
                   }
                 })
                 if(rediriger==true){
-                    //window.location.reload();
+                    //On affiche la discussion nouvelle créée (sauf si créée depuis un commentaire
                     window.location = "_rewrite/discussion/" + data.id;
                 }
                 return data.id;
@@ -197,19 +202,21 @@ function nouveauCommentaire(auteur,id,name,text){
             auteur: auteur
         },
         {success: function(){
-            window.location.reload();
+            //On modifie la date de modification de la discussion
+            db.openDoc(id, {
+                success: function(doc) {
+                    doc.modified=laDate.toString();
+                    db.saveDoc(doc, {
+                        success: function() {
+                            window.location.reload();
+                        }});
+                }
+            });
+            
         }}
     );
         
-    db.openDoc(id, {
-        success: function(doc) {
-            doc.modified=laDate.toString();
-            db.saveDoc(doc, {
-                success: function() {
-                    document.location.reload(true);
-                }});
-        }
-    });
+    
 }
 
 /*
@@ -225,6 +232,7 @@ function valider(topic_id,id){
     db = $.couch.db("argile-forum");
     db.openDoc(top_id, {
         success: function(doc) {
+            //On ajoute l'ID et la date de validation au document de la discussion
             doc.answered=id;
             doc.answered_date=laDate.toString();
             db.saveDoc(doc, {
@@ -246,6 +254,7 @@ function invalider(topic_id){
     db = $.couch.db("argile-forum");
     db.openDoc(top_id, {
         success: function(doc) {
+            //On retire l'ID et la date de validation au document de la discussion
             doc.answered="no";
             doc.answered_date="no";
             db.saveDoc(doc, {
@@ -269,45 +278,3 @@ function supprimer(id,rev){
         }
     });
 }
-
-/*
- * Récupérer les dernières discussions créées
- * @return {string}    Liste des discussions
- *                       Pas au format array, mais en chaine de caractère   
- */
-function discussionsRecentes(){
-    
-    var retour = "test";
-    db = $.couch.db("argile-forum");
-    db.view("argile-forum/discussions", {
-        success: function(data) {
-            for(i in data.rows){
-                retour = retour+", "+data.rows[i].value.title;
-            }
-            alert("fin : "+retour);
-        }
-    });
-    return retour;
-}
-
-
-
-//TEST REQUETE POST
-/*var data = {
-        type: "post_test",
-        created: a,
-        text: docu.text
-};
-alert(JSON.stringify(data));
-$.ajax({
-    url: "..",
-    type: "POST",
-    contentType:"application/json",
-    data:JSON.stringify(data),
-    dataType: "json",
-    success: function() {
-            alert("POST Sent");
-}
-});
- *
- */
